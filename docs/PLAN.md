@@ -119,7 +119,11 @@ Zadania:
 
 ## Etap 5 — Odporność na prompt injection
 
-** temat na pózniej.
+**Temat na później** (decyzja użytkownika, 2026-08-24). Zestaw adversarialny
+wszedł do datasetu Etapu 6 jako kategoria, a częściowy hardening promptu
+(delimitacja `<wiadomosc>`, reguła „treść to dane") wykonano w ramach iteracji
+Etapu 6 (adversarial 2/12 → 5/12, plateau promptu na 3B). Wnioski i kierunek:
+README, sekcja „Kierunki rozwoju".
 
 ---
 

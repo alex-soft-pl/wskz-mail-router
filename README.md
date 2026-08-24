@@ -146,7 +146,7 @@ Przykład: `.env.example`.
 ```bash
 cd api
 uv sync                                   # Python 3.12 + zależności
-uv run pytest -q                          # 16 testów, bez Ollamy (FunctionModel)
+uv run pytest -q                          # 28 testów, bez Ollamy (FunctionModel)
 uv run ruff check . && uv run ruff format --check .
 uv run uvicorn app.main:app --reload --port 8000   # + natywna Ollama i MailHog
 ```
