@@ -32,6 +32,7 @@ async def route_message(request: RouteRequest) -> RouteResponse:
     return RouteResponse(department=result.department, recipient=result.department.email)
 
 
-@app.get("/api/v1/health", include_in_schema=False)
+@app.get("/api/v1/health")
 def health() -> dict[str, str]:
+    """Prosty healthcheck API (używany też przez healthcheck kontenera)."""
     return {"status": "ok"}

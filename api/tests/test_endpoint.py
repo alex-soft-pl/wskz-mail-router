@@ -74,4 +74,6 @@ def test_swagger_available_under_api_v1_docs(client):
     assert client.get("/api/v1/docs").status_code == 200
     openapi = client.get("/api/v1/openapi.json")
     assert openapi.status_code == 200
-    assert "/api/v1/route" in openapi.json()["paths"]
+    paths = openapi.json()["paths"]
+    assert "/api/v1/route" in paths
+    assert "/api/v1/health" in paths
