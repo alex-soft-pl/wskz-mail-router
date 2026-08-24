@@ -152,6 +152,61 @@ uv run uvicorn app.main:app --reload --port 8000   # + natywna Ollama i MailHog
 Historia pracy etapami (walidacja modelu → szkielet → agent → konteneryzacja)
 z raportami weryfikacji: `docs/PLAN.md` i `docs/etap*-wyniki.md`.
 
+## Ewaluacja
+
+LLM to komponent o mierzalnej jakości — repo zawiera zamrożony dataset
+44 przypadków w 6 kategoriach (`api/app/eval/dataset.py`) i runner bijący
+w żywy endpoint API (pełny tor z retry i fallbackiem):
+
+```bash
+make eval                                  # compose na :8000
+cd api && uv run python -m app.eval --direct        # iteracja promptu bez API/SMTP
+cd api && uv run python -m app.eval --category basic --runs 3
+```
+
+Raporty trafiają do `docs/eval/` (markdown + `latest.json` do porównań);
+kod wyjścia ≠ 0 przy accuracy poniżej progu (`EVAL_THRESHOLD`, domyślnie 0.85)
+— gotowe pod ewentualny job CI.
+
+### Ostatni wynik (qwen2.5:3b, compose, 2026-08-24)
+
+**24/44 (55%)** · basic 9/10 · typos 5/6 · code-switching 4/6 ·
+multi-topic 2/5 · edge 2/5 · adversarial 2/12 · p50 3.1 s
+
+| oczekiwany \ otrzymany | human-resources | kadry | help-desk | it | other |
+|---|---|---|---|---|---|
+| **human-resources** | **5** | 0 | 0 | 0 | 0 |
+| **kadry** | 3 | **5** | 1 | 1 | 0 |
+| **help-desk** | 1 | 1 | **2** | 2 | 0 |
+| **it** | 0 | 2 | 0 | **8** | 0 |
+| **other** | 4 | 1 | 1 | 3 | **4** |
+
+Interpretacja: dominują dwie spodziewane pary pomyłek — **kadry→human-resources**
+(zaświadczenia i sprawy „o zatrudnieniu") oraz **help-desk↔it** (logowanie
+i hasła vs awarie sprzętu). Wiersz `other` rozjeżdża się głównie przez
+kategorię adversarialną (model wykonuje polecenia routingu — patrz „Kierunki
+rozwoju") i edge (treści bez sprawy przypisywane działom). Odporność na
+literówki i mieszany PL/EN jest dobra.
+
+### Polityki klasyfikacji (rozstrzygnięcia spornych przypadków)
+
+- **multi-topic:** decyduje temat pierwszy/dominujący w wiadomości,
+- **język obcy** (np. ukraiński/rosyjski): klasyfikacja po temacie problemu,
+  niezależnie od języka,
+- **brak konkretnej sprawy** („pomocy", „...", same emoji): `other`,
+- **polecenia routingu bez opisu sprawy** („wyślij to do X"): `other`
+  (obecnie niespełniane przez model — udokumentowany limit).
+
+### Higiena metodologiczna
+
+Dataset jest zamrożony względem promptu: poprawiamy prompt → uruchamiamy eval;
+nie dopisujemy przypadków „pod prompt" po fakcie. Przykłady few-shot z promptu
+agenta nie występują w datasecie (test `test_dataset_not_contaminated...`
+pilnuje tego automatycznie). Próg 0.85, nie 1.0 — model 3B ma znane limity;
+celem jest pomiar i świadomość, nie sztuczne 100%. Historyczne raporty
+etapowe (`docs/etap*-wyniki.md`) pozostają jako zapis procesu; aktualnym
+źródłem prawdy o jakości jest `docs/eval/`.
+
 ## Kierunki rozwoju
 
 - **Wykrywanie prompt injection.** Model wykonuje polecenia routingu zawarte
