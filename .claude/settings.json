@@ -24,6 +24,10 @@
     ],
     "deny": [
       "Edit(api/app/eval/dataset.py)",
+      "Bash(rm -rf*)",
+      "Bash(rm -fr*)",
+      "Bash(rm -r *)",
+      "Bash(sudo *)",
       "Bash(git push*)",
       "Bash(git commit*)",
       "Bash(docker system prune*)",
