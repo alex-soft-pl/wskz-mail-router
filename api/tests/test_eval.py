@@ -122,3 +122,7 @@ def test_render_report_lists_failures_and_threshold():
     assert "1/2" in md and "50.00%" in md
     assert "❌ poniżej progu" in md
     assert "| b | basic |" in md  # tabela błędów
+
+
+def test_celowo_zepsuty_dowod_ci():
+    assert 1 == 2, "celowo zepsuty test - dowod ze CI naprawde testuje"
