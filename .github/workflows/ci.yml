@@ -51,10 +51,12 @@ jobs:
           echo "api nie osiągnęło healthy w limicie czasu"
           exit 1
 
-      # Siła asercji: zaczynamy od ścisłej (dokładny dział "it" dla jednoznacznej
-      # wiadomości) — do weryfikacji po pierwszych 2-3 przebiegach; jeśli
-      # klasyfikacja na CPU runnera okaże się flaky, osłabimy do "dział z enum
-      # + mail z poprawnym Reply-To" (kontrakt aplikacji, nie jakości modelu).
+      # Siła asercji — decyzja po pierwszych przebiegach (2026-08-24): zostaje
+      # ŚCISŁA (dokładny dział "it"). W 2 pełnych przebiegach na ubuntu-latest
+      # (4 vCPU x86, NUM_THREAD=4) klasyfikacja "Nie działa mi komputer" -> it
+      # była stabilna, a cały job trwał ~2 min (pull modelu z cache registry
+      # jest szybki). Gdyby w przyszłości pojawiło się flake — osłabić do
+      # "dział z enum + mail z poprawnym Reply-To" (kontrakt aplikacji).
       - name: Smoke test e2e
         run: |
           resp=$(curl -sf -X POST localhost:8000/api/v1/route \
