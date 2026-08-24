@@ -21,8 +21,8 @@ class Department(StrEnum):
 # qwen2.5:3b (patrz docs/etap0-wyniki.md).
 DEPARTMENT_DESCRIPTIONS: dict[Department, str] = {
     Department.HUMAN_RESOURCES: "rekrutacja, benefity, onboarding",
-    Department.KADRY: "urlopy, L4, zaświadczenia, umowy",
-    Department.HELP_DESK: "wsparcie użytkownika, dostępy, hasła, logowanie",
-    Department.IT: "awarie sprzętu i systemów, infrastruktura, serwery",
+    Department.KADRY: "urlopy, L4, zaświadczenia (o zatrudnieniu, o zarobkach), umowy",
+    Department.HELP_DESK: "logowanie, hasła, dostępy, konta, VPN, wsparcie użytkownika",
+    Department.IT: "awarie sprzętu i infrastruktury (serwery, sieć, urządzenia)",
     Department.OTHER: "wszystko inne",
 }
