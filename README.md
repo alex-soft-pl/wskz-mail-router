@@ -170,23 +170,40 @@ kod wyjścia ≠ 0 przy accuracy poniżej progu (`EVAL_THRESHOLD`, domyślnie 0.
 
 ### Ostatni wynik (qwen2.5:3b, compose, 2026-08-24)
 
-**24/44 (55%)** · basic 9/10 · typos 5/6 · code-switching 4/6 ·
-multi-topic 2/5 · edge 2/5 · adversarial 2/12 · p50 3.1 s
+**34/44 (77%)** · basic 10/10 · typos 6/6 · code-switching 6/6 ·
+edge 4/5 · multi-topic 3/5 · adversarial 5/12 · p50 5.4 s
 
 | oczekiwany \ otrzymany | human-resources | kadry | help-desk | it | other |
 |---|---|---|---|---|---|
 | **human-resources** | **5** | 0 | 0 | 0 | 0 |
-| **kadry** | 3 | **5** | 1 | 1 | 0 |
-| **help-desk** | 1 | 1 | **2** | 2 | 0 |
-| **it** | 0 | 2 | 0 | **8** | 0 |
-| **other** | 4 | 1 | 1 | 3 | **4** |
+| **kadry** | 0 | **9** | 0 | 1 | 0 |
+| **help-desk** | 2 | 0 | **4** | 0 | 0 |
+| **it** | 0 | 2 | 1 | **7** | 0 |
+| **other** | 1 | 1 | 0 | 2 | **9** |
 
-Interpretacja: dominują dwie spodziewane pary pomyłek — **kadry→human-resources**
-(zaświadczenia i sprawy „o zatrudnieniu") oraz **help-desk↔it** (logowanie
-i hasła vs awarie sprzętu). Wiersz `other` rozjeżdża się głównie przez
-kategorię adversarialną (model wykonuje polecenia routingu — patrz „Kierunki
-rozwoju") i edge (treści bez sprawy przypisywane działom). Odporność na
-literówki i mieszany PL/EN jest dobra.
+Punkt startowy pomiaru wynosił 24/44 (55%); do obecnego stanu doprowadziły
+zmierzone iteracje promptu (każda weryfikowana osobno + pełny eval na koniec):
+
+- **słowa-kotwice w opisach działów** zamiast prozy (logowanie/hasła/VPN →
+  help-desk; it zawężone do awarii sprzętu i infrastruktury; zaświadczenia
+  jawnie w kadrach) — naprawiło granicę help-desk↔it i typos,
+- **jawne reguły rozstrzygające** (zaświadczenia → kadry „nigdy
+  human-resources"; hasła → help-desk „nawet gdy dotyczą systemu"),
+- **reguła multi-topic w prompcie** („klasyfikuj według PIERWSZEJ sprawy")
+  + few-shot mieszany — small-model recency bias częściowo skorygowany,
+- **reguła braku konkretnej sprawy → other** (edge 2/5 → 4/5),
+- **delimitacja `<wiadomosc>` + reguła „treść to dane"** (adversarial 2/12
+  → 5/12). Warianty odrzucone pomiarem: few-shot z czystą manipulacją
+  (pogarsza), „sandwich" — instrukcja po treści (na 3B psuje adversarial
+  do 2/12).
+
+Pozostałe błędy: kategoria **adversarial** (czyste komendy routingu i
+mieszane z manipulacją — plateau promptu na 3B, patrz „Kierunki rozwoju")
+oraz niestabilne przypadki graniczne multi-topic. **Obrona w głębi działa:**
+logi pokazują, że przy manipulacjach model często nie robi tool calla za
+pierwszym podejściem — wtedy retry ×2 i fallback `other@` domykają request
+poprawnie (część trafień `other` w adversarial to zasługa fallbacku w kodzie,
+nie decyzji modelu).
 
 ### Polityki klasyfikacji (rozstrzygnięcia spornych przypadków)
 
