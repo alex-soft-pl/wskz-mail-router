@@ -1,0 +1,71 @@
+services:
+  ollama:
+    image: ollama/ollama:0.32.15
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      # model trzymany w RAM bez wyładowywania — pierwszy request nie płaci za load
+      - OLLAMA_KEEP_ALIVE=-1
+    healthcheck:
+      test: ["CMD", "ollama", "ls"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 15s
+    restart: unless-stopped
+
+  # Jednorazowy init: pobiera model bazowy, tworzy z niego router-model z przypiętą
+  # liczbą wątków i wgrzewa go do pamięci. api startuje dopiero po pomyślnym
+  # zakończeniu (service_completed_successfully).
+  #
+  # Dlaczego num_thread: llama.cpp domyślnie bierze tyle wątków, ile widzi CPU,
+  # a na wirtualizowanych rdzeniach P/E Apple >6 wątków zapada się na spinlockach
+  # (zmierzono: 10 wątków = 0.33 tok/s, 4 wątki = 36 tok/s). Ollama ignoruje
+  # cpuset/affinity przy autodetekcji, więc parametr musi być zapisany w modelu.
+  ollama-init:
+    image: ollama/ollama:0.32.15
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        ollama pull "${MODEL:-qwen2.5:3b}" &&
+        printf 'FROM %s\nPARAMETER num_thread %s\n' "${MODEL:-qwen2.5:3b}" "${NUM_THREAD:-4}" > /tmp/Modelfile &&
+        ollama create router-model -f /tmp/Modelfile &&
+        ollama run router-model "ping"
+    restart: "no"
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    platform: linux/amd64  # obraz tylko amd64; na ARM działa przez emulację
+    ports:
+      - "8025:8025" # web UI; SMTP :1025 tylko wewnątrz sieci compose
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - MODEL=router-model # model pochodny tworzony przez ollama-init
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+      mailhog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  ollama-models:
