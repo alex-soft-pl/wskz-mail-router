@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# nowy push na ten sam branch anuluje poprzedni przebieg
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Workflow celowo nie używa żadnych sekretów — stack jest w pełni lokalny.
+jobs:
+  # Szybki feedback: lint + testy bez modelu (FunctionModel), cel < 2 min.
+  lint-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q
+
+  # Pełny stack compose + smoke test e2e. Wolny (pull modelu ~2 GB na runnerze),
+  # dlatego za lint-test (needs) — nie blokuje szybkiego feedbacku.
+  smoke-compose:
+    needs: lint-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose up
+        run: docker compose up -d --build
+
+      - name: Czekaj aż api będzie healthy (pull modelu może potrwać kilka minut)
+        run: |
+          for i in $(seq 1 120); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose ps -q api)" 2>/dev/null || echo starting)
+            echo "[$i] api: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 5
+          done
+          echo "api nie osiągnęło healthy w limicie czasu"
+          exit 1
+
+      # Siła asercji: zaczynamy od ścisłej (dokładny dział "it" dla jednoznacznej
+      # wiadomości) — do weryfikacji po pierwszych 2-3 przebiegach; jeśli
+      # klasyfikacja na CPU runnera okaże się flaky, osłabimy do "dział z enum
+      # + mail z poprawnym Reply-To" (kontrakt aplikacji, nie jakości modelu).
+      - name: Smoke test e2e
+        run: |
+          resp=$(curl -sf -X POST localhost:8000/api/v1/route \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"ci@example.com","message":"Nie działa mi komputer"}')
+          echo "odpowiedź: $resp"
+          test "$(echo "$resp" | jq -r .department)" = "it"
+
+          curl -sf localhost:8000/api/v1/docs > /dev/null
+          echo "swagger OK"
+
+          msgs=$(curl -sf localhost:8025/api/v2/messages)
+          echo "$msgs" | jq -e '.total >= 1' > /dev/null
+          echo "$msgs" | jq -e '.items[0].Content.Headers."Reply-To" == ["ci@example.com"]' > /dev/null
+          echo "$msgs" | jq -e '.items[0].Content.Headers.To == ["it@example.com"]' > /dev/null
+          echo "MailHog OK: mail do it@ z Reply-To ci@example.com"
+
+      - name: Zbierz logi compose (przy porażce)
+        if: failure()
+        run: docker compose logs > compose-logs.txt 2>&1
+
+      - name: Artefakt z logami (przy porażce)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-logs
+          path: compose-logs.txt
