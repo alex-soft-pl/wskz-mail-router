@@ -1,5 +1,7 @@
 # WSKZ PoC — AI Message Router
 
+![CI](https://github.com/alex-soft-pl/wskz-mail-router/actions/workflows/ci.yml/badge.svg)
+
 Mikroserwisowy router wiadomości: API przyjmuje `{email, message}`, agent AI
 (pydantic-ai + lokalna Ollama) interpretuje treść i **poprzez tool calling**
 wysyła e-mail do właściwego działu. Maile przechwytuje MailHog.
@@ -148,6 +150,15 @@ uv run pytest -q                          # 16 testów, bez Ollamy (FunctionMode
 uv run ruff check . && uv run ruff format --check .
 uv run uvicorn app.main:app --reload --port 8000   # + natywna Ollama i MailHog
 ```
+
+**CI (GitHub Actions):** każdy push na `main` i każdy PR uruchamia lint +
+testy (bez modelu, < 2 min) oraz — po ich sukcesie — pełny stack compose ze
+smoke testem e2e (request → dział → mail w MailHog z `Reply-To`; przy
+porażce logi compose trafiają do artefaktu). CI świadomie **nie** uruchamia
+`make eval`: ewaluacja na żywym modelu na runnerze CPU to 5–15 min
+niedeterminizmu — eval pozostaje narzędziem lokalnym, a jego kod wyjścia
+z progiem czeka gotowy, gdyby potrzebny był nightly job. Workflow nie używa
+żadnych sekretów — stack jest w pełni lokalny.
 
 Historia pracy etapami (walidacja modelu → szkielet → agent → konteneryzacja)
 z raportami weryfikacji: `docs/PLAN.md` i `docs/etap*-wyniki.md`.
