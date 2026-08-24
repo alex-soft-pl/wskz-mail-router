@@ -1,0 +1,197 @@
+{
+  "model": "qwen2.5:3b",
+  "results": [
+    {
+      "message": "Nie działa mi komputer",
+      "expected": "it",
+      "got": "it",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.72,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_h0tn7tnu",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "it"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Chciałbym zgłosić urlop na jutro",
+      "expected": "kadry",
+      "got": "kadry",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.76,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_s1wf40ip",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "kadry"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Potrzebuję zaświadczenie o zatrudnieniu",
+      "expected": "kadry",
+      "got": "kadry",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.72,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_jkgohbo3",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "kadry"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Nie mogę się zalogować do systemu",
+      "expected": "help-desk",
+      "got": "help-desk",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.72,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_eiampvrr",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "help-desk"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Pytanie o proces rekrutacji na stanowisko developera",
+      "expected": "human-resources",
+      "got": "human-resources",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.7,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_dp1md9an",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "human-resources"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Ile dni urlopu mi zostało?",
+      "expected": "kadry",
+      "got": "kadry",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.71,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_9te4in3g",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "kadry"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Padł serwer produkcyjny!",
+      "expected": "it",
+      "got": "it",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.68,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_vtfwdla5",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "it"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "message": "Kupię tanio garaż",
+      "expected": "other",
+      "got": "other",
+      "tool_call": true,
+      "correct": true,
+      "time_s": 0.68,
+      "raw_message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_rbfko7n7",
+            "function": {
+              "index": 0,
+              "name": "send_email",
+              "arguments": {
+                "department": "other"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
