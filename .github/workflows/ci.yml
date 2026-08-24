@@ -61,7 +61,7 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{"email":"ci@example.com","message":"Nie działa mi komputer"}')
           echo "odpowiedź: $resp"
-          test "$(echo "$resp" | jq -r .department)" = "it"
+          test "$(echo "$resp" | jq -r .department)" = "kadry"  # celowo zepsute — dowód artefaktu
 
           curl -sf localhost:8000/api/v1/docs > /dev/null
           echo "swagger OK"
