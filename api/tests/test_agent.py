@@ -104,3 +104,22 @@ async def test_ollama_down_raises_agent_unavailable(sent_mails):
         await route_and_send(settings, "jan@example.com", "test", model=model)
 
     assert sent_mails == []
+
+
+async def test_model_looping_on_tool_calls_still_returns_success(sent_mails):
+    """Model po udanym toolu woła go w kółko (zaobserwowane na qwen2.5:7b).
+
+    Limit requestów przerywa run, ale mail już wyszedł — endpoint ma zwrócić
+    sukces z wybranym działem i dokładnie jednym mailem, nie 500.
+    """
+
+    def model_fn(messages, info: AgentInfo) -> ModelResponse:
+        return _tool_call("kadry")  # nigdy nie kończy tekstem
+
+    result = await route_and_send(
+        SETTINGS, "jan@example.com", "Wniosek o urlop", model=FunctionModel(model_fn)
+    )
+
+    assert result.department is Department.KADRY
+    assert result.fallback is False
+    assert [m["department"] for m in sent_mails] == [Department.KADRY]

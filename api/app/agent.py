@@ -13,7 +13,7 @@ from functools import lru_cache
 
 from openai import AsyncOpenAI
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.exceptions import ModelAPIError, UnexpectedModelBehavior
+from pydantic_ai.exceptions import ModelAPIError, UnexpectedModelBehavior, UsageLimitExceeded
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -25,6 +25,7 @@ from pydantic_ai.messages import (
 from pydantic_ai.models import Model
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.usage import UsageLimits
 
 from app import mailer
 from app.config import Settings
@@ -149,11 +150,14 @@ async def route_and_send(
                 model=model,
                 message_history=FEW_SHOT,
                 model_settings={"temperature": 0.0},
+                # twardy limit rund na run: niektóre modele po udanym tool callu
+                # wołają tool w kółko — bez limitu run kręci się do domyślnych 50
+                usage_limits=UsageLimits(request_limit=6),
             )
         except ModelAPIError as exc:  # połączenie/timeout/HTTP — Ollama niedostępna
             logger.error("request_id=%s ollama niedostępna: %s", request_id, exc)
             raise AgentUnavailableError(str(exc)) from exc
-        except UnexpectedModelBehavior as exc:
+        except (UnexpectedModelBehavior, UsageLimitExceeded) as exc:
             logger.warning(
                 "request_id=%s attempt=%d nieudany przebieg agenta: %s", request_id, attempt, exc
             )
