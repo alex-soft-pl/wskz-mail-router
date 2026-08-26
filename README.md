@@ -102,9 +102,13 @@ nie przepisuje adresu e-mail — nie może go więc pomylić ani zhalucynować.
 
 **kadry vs human-resources — jawna reguła.** Sprawy kadrowo-administracyjne
 PL (urlopy, L4, zaświadczenia, umowy) → `kadry`; HR „miękkie" (rekrutacja,
-benefity, onboarding) → `human-resources`. Reguła spisana w system prompcie.
-Znany limit modelu 3B: „zaświadczenie o zatrudnieniu" bywa kojarzone z HR
-(7/8 na zestawie ewaluacyjnym; szczegóły w `docs/etap2-wyniki.md`).
+benefity, onboarding) → `human-resources`. Reguła spisana w system prompcie,
+wzmocniona słowami-kotwicami w opisach działów i przykładem few-shot —
+po iteracjach z Etapu 6 „zaświadczenie o zatrudnieniu" trafia poprawnie do
+kadr (kategoria basic 10/10). Granica pozostaje najtrudniejszą parą dla
+modelu 3B: wariant mieszany PL/EN („need zaświadczenie o zatrudnieniu for
+bank") wciąż bywa kojarzony z HR (historia: `docs/etap2-wyniki.md`, pomiary:
+`docs/eval/`).
 
 **Fallback i retry w kodzie, nie w prompcie (niezawodność).** Brak tool calla
 → 2 dodatkowe próby → wysyłka na `other@` + WARNING w logach. Niedostępna
